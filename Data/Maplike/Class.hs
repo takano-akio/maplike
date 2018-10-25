@@ -2,9 +2,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
-module Data.Maplike.Class (Maplike(..)) where
+module Data.Maplike.Class (Maplike(..), OrderedMaplike(..)) where
 
-import Control.Applicative hiding (empty)
+import Control.Applicative hiding(empty)
 import Data.Hashable
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.HashMap.Strict as HMS
@@ -14,7 +14,7 @@ import qualified Data.Map.Lazy as M
 import qualified Data.Map.Strict as MS
 import qualified Data.Maybe as Maybe
 import Data.Monoid
-import Prelude hiding (lookup)
+import Prelude hiding(lookup)
 
 class (Traversable m) => Maplike k m | m -> k where
   -- * Query
@@ -80,6 +80,8 @@ class (Traversable m) => Maplike k m | m -> k where
   foldrWithKey' :: (k -> u -> a -> a) -> a -> m u -> a
   foldlWithKey :: (a -> k -> u -> a) -> a -> m u -> a
   foldlWithKey' :: (a -> k -> u -> a) -> a -> m u -> a
+  toList :: m u -> [(k, u)]
+  keys :: m u -> [k]
 
   -- ** Map
   mapWithKey :: (k -> u -> v) -> m u -> m v
@@ -91,6 +93,18 @@ class (Traversable m) => Maplike k m | m -> k where
 
   -- ** MapMaybe
   mapMaybeWithKey :: (k -> u -> Maybe v) -> m u -> m v
+
+
+class (Maplike k m) => OrderedMaplike k m where
+  -- * Ordered lookup
+  lookupLT :: k -> m v -> Maybe (k, v)
+  lookupGT :: k -> m v -> Maybe (k, v)
+  lookupLE :: k -> m v -> Maybe (k, v)
+  lookupGE :: k -> m v -> Maybe (k, v)
+
+  -- * Min/Max
+  minViewWithKey :: m v -> Maybe ((k, v), m v)
+  maxViewWithKey :: m v -> Maybe ((k, v), m v)
 
 ------------------------------------------------------------------------
 
@@ -135,12 +149,23 @@ instance (Ord k) => Maplike k (M.Map k) where
   foldrWithKey' = M.foldrWithKey'
   foldlWithKey = M.foldlWithKey
   foldlWithKey' = M.foldlWithKey'
+  toList = M.toList
+  keys = M.keys
 
   mapWithKey = M.mapWithKey
   mapWithKey' = MS.mapWithKey
 
   filterWithKey = M.filterWithKey
   mapMaybeWithKey = M.mapMaybeWithKey
+
+instance (Ord k) => OrderedMaplike k (M.Map k) where
+  lookupGT = M.lookupGT
+  lookupLT = M.lookupLT
+  lookupGE = M.lookupGE
+  lookupLE = M.lookupLE
+
+  minViewWithKey = M.minViewWithKey
+  maxViewWithKey = M.maxViewWithKey
 
 ------------------------------------------------------------------------
 
@@ -185,12 +210,23 @@ instance Maplike Int IM.IntMap where
   foldrWithKey' = IM.foldrWithKey'
   foldlWithKey = IM.foldlWithKey
   foldlWithKey' = IM.foldlWithKey'
+  toList = IM.toList
+  keys = IM.keys
 
   mapWithKey = IM.mapWithKey
   mapWithKey' = IMS.mapWithKey
 
   filterWithKey = IM.filterWithKey
   mapMaybeWithKey = IM.mapMaybeWithKey
+
+instance OrderedMaplike Int IM.IntMap where
+  lookupGT = IM.lookupGT
+  lookupLT = IM.lookupLT
+  lookupGE = IM.lookupGE
+  lookupLE = IM.lookupLE
+
+  minViewWithKey = IM.minViewWithKey
+  maxViewWithKey = IM.maxViewWithKey
 
 ------------------------------------------------------------------------
 
@@ -251,6 +287,8 @@ instance (Eq k, Hashable k) => Maplike k (HM.HashMap k) where
   foldrWithKey' f = HM.foldrWithKey $ \k v r -> f k v $! r
   foldlWithKey f x t = HM.foldrWithKey (\k v r a -> r (f a k v)) id t x
   foldlWithKey' f x t = HM.foldrWithKey (\k v r a -> r $! f a k v) id t x
+  toList = HM.toList
+  keys = HM.keys
 
   mapWithKey = HM.mapWithKey
   mapWithKey' = HMS.mapWithKey

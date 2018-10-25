@@ -1,9 +1,23 @@
-module Data.Maplike.Lazy where
+module Data.Maplike.Lazy
+  ( Maplike, OrderedMaplike
+  , module Data.Maplike.Lazy
+  ) where
 
-import Data.Maplike.Class(Maplike)
+import qualified Data.Foldable as Fold
+import Data.Maplike.Class(Maplike, OrderedMaplike)
 import qualified Data.Maplike.Class as C
 
+import Prelude hiding(null)
+
 -- * Query
+
+size :: (Maplike k m) => m v -> Int
+size = length
+{-# INLINE size #-}
+
+null :: (Maplike k m) => m v -> Bool
+null = Fold.null
+{-# INLINE null #-}
 
 member :: (Maplike k m) => k -> m v -> Bool
 member = C.member
@@ -132,6 +146,18 @@ foldlWithKey' :: (Maplike k m) => (a -> k -> u -> a) -> a -> m u -> a
 foldlWithKey' = C.foldlWithKey'
 {-# INLINE foldlWithKey' #-}
 
+toList :: (Maplike k m) => m u -> [(k, u)]
+toList = C.toList
+{-# INLINE toList #-}
+
+keys :: (Maplike k m) => m u -> [k]
+keys = C.keys
+{-# INLINE keys #-}
+
+elems :: (Maplike k m) => m u -> [u]
+elems = Fold.toList
+{-# INLINE elems #-}
+
 -- ** Map
 map :: (Maplike k m) => (u -> v) -> m u -> m v
 map = mapWithKey . const
@@ -158,3 +184,29 @@ mapMaybe = mapMaybeWithKey . const
 mapMaybeWithKey :: (Maplike k m) => (k -> u -> Maybe v) -> m u -> m v
 mapMaybeWithKey = C.mapMaybeWithKey
 {-# INLINE mapMaybeWithKey #-}
+
+-- * Ordered lookup
+lookupLT :: (OrderedMaplike k m) => k -> m v -> Maybe (k, v)
+lookupLT = C.lookupLT
+{-# INLINE lookupLT #-}
+
+lookupGT :: (OrderedMaplike k m) => k -> m v -> Maybe (k, v)
+lookupGT = C.lookupGT
+{-# INLINE lookupGT #-}
+
+lookupLE :: (OrderedMaplike k m) => k -> m v -> Maybe (k, v)
+lookupLE = C.lookupLE
+{-# INLINE lookupLE #-}
+
+lookupGE :: (OrderedMaplike k m) => k -> m v -> Maybe (k, v)
+lookupGE = C.lookupGE
+{-# INLINE lookupGE #-}
+
+-- * Min/Max
+minViewWithKey :: (OrderedMaplike k m) => m v -> Maybe ((k, v), m v)
+minViewWithKey = C.minViewWithKey
+{-# INLINE minViewWithKey #-}
+
+maxViewWithKey :: (OrderedMaplike k m) => m v -> Maybe ((k, v), m v)
+maxViewWithKey = C.maxViewWithKey
+{-# INLINE maxViewWithKey #-}
