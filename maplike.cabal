@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                maplike
-version:             0.0.0.0
+version:             0.1.0.0
 synopsis:            A class for map-like containers
 description:         This package defines the Maplike class, which provides a
                      common interface to containers like Data.Map.
