@@ -18,6 +18,8 @@ import Prelude hiding(lookup)
 
 class (Traversable m) => Maplike k m | m -> k where
   -- * Query
+  null :: m v -> Bool
+  size :: m v -> Int
   member :: k -> m v -> Bool
   lookup :: k -> m v -> Maybe v
 
@@ -109,6 +111,8 @@ class (Maplike k m) => OrderedMaplike k m where
 ------------------------------------------------------------------------
 
 instance (Ord k) => Maplike k (M.Map k) where
+  null = M.null
+  size = M.size
   member = M.member
   lookup = M.lookup
   fromList = M.fromList
@@ -170,6 +174,8 @@ instance (Ord k) => OrderedMaplike k (M.Map k) where
 ------------------------------------------------------------------------
 
 instance Maplike Int IM.IntMap where
+  null = IM.null
+  size = IM.size
   member = IM.member
   lookup = IM.lookup
   fromList = IM.fromList
@@ -231,6 +237,8 @@ instance OrderedMaplike Int IM.IntMap where
 ------------------------------------------------------------------------
 
 instance (Eq k, Hashable k) => Maplike k (HM.HashMap k) where
+  null = HM.null
+  size = HM.size
   member = HM.member
   lookup = HM.lookup
 
