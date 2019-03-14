@@ -1,0 +1,9 @@
+resolver: lts-13.12
+packages:
+- .
+extra-deps:
+  - git: https://github.com/tsurucapital/enummapset-th.git
+    # GHC 8.x, containers patch.
+    commit: a86386d7102ecf95ab0d165cf2e855b74b45a16b
+    subdirs:
+      - .
